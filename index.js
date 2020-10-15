@@ -131,7 +131,7 @@ app.put("/valid", async function (req, res) {
   try {
     var client = await mongoClient.connect(url);
     var db = client.db("user-login");
-    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(Id) });
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.body.Id) });
     if (!user) {
       await db.collection("user")
         .findOneAndUpdate(
