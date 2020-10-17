@@ -132,7 +132,7 @@ app.put("/valid", async function (req, res) {
     var client = await mongoClient.connect(url);
     var db = client.db("react-login");
     var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.body.Id) });
-    if (!user) {
+    if (user) {
       await db.collection("user")
         .findOneAndUpdate(
           { _id: mongodb.ObjectID(req.body.Id) },
