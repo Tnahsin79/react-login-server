@@ -15,10 +15,10 @@ app.use(cors({
 
 console.log("server started...");
 
-// GET users listing. 
-/*app.get('/', function (req, res, next) {
+//GET users listing. 
+app.get('/', function (req, res, next) {
   res.send('respond with a resource');
-});*/
+});
 
 app.post("/signup", async function (req, res) {
   try {
@@ -159,7 +159,11 @@ app.put("/valid", async function (req, res) {
   }
 });
 
-app.post("/reset", async function (req, res) {
+const port = process.env.PORT || 3001;
+app.listen(port);
+
+
+/*app.post("/reset", async function (req, res) {
   try {
     var client = await mongoClient.connect(process.env.URL);
     var db = client.db("user-login");
@@ -193,10 +197,7 @@ app.post("/reset", async function (req, res) {
       message: "Something went wrong: " + error
     })
   }
-});
-
-const port = process.env.PORT || 3001;
-app.listen(port);
+});*/
 
 /*
 require('dotenv').config();
