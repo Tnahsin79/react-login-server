@@ -197,8 +197,8 @@ app.listen(port);
       message: "Something went wrong: " + error
     })
   }
-});*/
+});
 
-/*
+
 require('dotenv').config();
 */
