@@ -7,7 +7,8 @@ var nodemailer = require("nodemailer");
 const mongoClient = mongodb.MongoClient;
 const cors = require("cors");
 require('dotenv').config();
-const url = "mongodb+srv://Tnahsin79:tnahsin79@guvi-zen.iisub.mongodb.net?retryWrites=true&w=majority";
+//const url = "mongodb+srv://Tnahsin79:tnahsin79@guvi-zen.iisub.mongodb.net?retryWrites=true&w=majority";
+const url = "mongodb+srv://Tnahsin79:tnahsin79@guvi-capstone.iisub.mongodb.net?retryWrites=true&w=majority";
 app.use(bodyParser.json());
 app.use(cors({
   origin: "http://localhost:3000"
@@ -36,7 +37,7 @@ app.post("/signup", async function (req, res) {
       res.json({
         message: "User Registered!"
       });
-      var link=`http://localhost:3000/valid/${user.insertedId}`;
+      var link = `http://localhost:3000/valid/${user.insertedId}`;
       //req.body=req.body.json();
       var data = `
       <p>you have registration requst</p>
@@ -86,15 +87,15 @@ app.post("/signup", async function (req, res) {
   }
 });
 
-app.get("/login", async function (req, res) {
+app.get("/login/:email/:pwd", async function (req, res) {
   try {
     var client = await mongoClient.connect(url);
     var db = client.db("react-login");
     //find the user with email
-    var user = await db.collection("user").findOne({ Email: req.body.Email });
-    if (user) {
+    var user = await db.collection("user").findOne({ Email: req.params.email });
+    if (user && user.isActivated) {
       //comapare the password
-      var result = await bcryptjs.compare(req.body.Password, user.Password);
+      var result = await bcryptjs.compare(req.params.pwd, user.Password);
       if (result) {
         //alert("ACCESS GRANTED :)");
         res.json({
@@ -116,7 +117,7 @@ app.get("/login", async function (req, res) {
       //alert("No such user exists, kindly register yourself!!!!");
       res.json({
         status: false,
-        message: "No such user exists, kindly register yourself!!!!"
+        message: "No such user exists, kindly register yourself!!!! or activate account"
       });
     }
   }
@@ -149,6 +150,124 @@ app.put("/valid", async function (req, res) {
     else {
       console.log("no user found");
     }
+
+  }
+  catch (error) {
+    console.log("ERROR: " + error);
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.get('/profile/:id', async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.params.id) });
+    //var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.body.Id) });
+    res.json(user);
+  }
+  catch (error) {
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.get('/friends/:id', async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.params.id) });
+    res.json(user.Friends);
+  }
+  catch (error) {
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.put("/addPost", async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.body.Id) });
+    if (user) {
+      let posts = user.Posts;
+      let id = posts.length + 1;
+      posts.push({
+        post_id: id,
+        name: req.body.Name,
+        //media: req.body.Media,
+        text: req.body.Text,
+        likes: 0
+      });
+      await db.collection("user")
+        .findOneAndUpdate(
+          { _id: mongodb.ObjectID(req.body.Id) },
+          {
+            $set: {
+              Posts: posts
+            }
+          }
+        );
+      res.json({
+        message: "Post Added"
+      });
+    }
+    else {
+      console.log("Post not added");
+    }
+
+  }
+  catch (error) {
+    console.log("ERROR: " + error);
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.get('/users', async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var users = await db.collection("user").find().toArray();
+    res.json(users);
+  }
+  catch (error) {
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.put("/addFriend/:id", async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.params.id) });
+    
+      let friends = user.Friends;
+      friends.push({
+        email: req.body.Email,
+        name: req.body.Name
+      });
+      await db.collection("user")
+        .findOneAndUpdate(
+          { _id: mongodb.ObjectID(req.params.id) },
+          {
+            $set: {
+              Friends: friends
+            }
+          }
+        );
+      res.json({
+        message: "Post Added"
+      });
+    
 
   }
   catch (error) {
