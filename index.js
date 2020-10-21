@@ -198,11 +198,11 @@ app.put("/addPost", async function (req, res) {
       let posts = user.Posts;
       let id = posts.length + 1;
       posts.push({
-        post_id: id,
+        post_id: req.body.Id + "-" + id,
         name: req.body.Name,
         //media: req.body.Media,
         text: req.body.Text,
-        likes: 0
+        likes: []
       });
       await db.collection("user")
         .findOneAndUpdate(
@@ -249,29 +249,50 @@ app.put("/addFriend/:id", async function (req, res) {
     var client = await mongoClient.connect(url);
     var db = client.db("react-login");
     var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.params.id) });
-    
-      let friends = user.Friends;
-      friends.push({
-        email: req.body.Email,
-        name: req.body.Name
-      });
-      await db.collection("user")
-        .findOneAndUpdate(
-          { _id: mongodb.ObjectID(req.params.id) },
-          {
-            $set: {
-              Friends: friends
-            }
+
+    let friends = user.Friends;
+    friends.push({
+      email: req.body.Email,
+      name: req.body.Name
+    });
+    await db.collection("user")
+      .findOneAndUpdate(
+        { _id: mongodb.ObjectID(req.params.id) },
+        {
+          $set: {
+            Friends: friends
           }
-        );
-      res.json({
-        message: "Post Added"
-      });
-    
+        }
+      );
+    res.json({
+      message: "Post Added"
+    });
+
 
   }
   catch (error) {
     console.log("ERROR: " + error);
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.get('/posts/:id', async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var result = [];
+    var db = client.db("react-login");
+    var temp = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.params.id) });
+    result.push(...temp.Posts);
+    var friends = temp.Friends;
+    for (let i = 0; i < friends.length; i++) {
+      let user = await db.collection("user").findOne({ Email: friends[i].email });
+      result.push(...user.Posts);
+    }
+    res.json(result);
+  }
+  catch (error) {
     res.json({
       message: "Something went wrong: " + error
     })
