@@ -299,6 +299,39 @@ app.get('/posts/:id', async function (req, res) {
   }
 });
 
+app.put("/likes/:id", async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.params.id) });
+    let posts = user.Posts;
+    let post = posts[req.body.index-1];
+    if(req.body.type)
+    post.likes.push(req.body.likerId);
+    else
+    post.likes.splice(post.likes.indexOf(req.body.likerId),1);
+    posts[req.body.index-1]=post;
+
+    await db.collection("user")
+      .findOneAndUpdate(
+        { _id: mongodb.ObjectID(req.params.id) },
+        {
+          $set: {
+            Posts: posts
+          }
+        }
+      );
+    res.json(post);
+  }
+  catch (error) {
+    console.log("ERROR: " + error);
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+
 const port = process.env.PORT || 3001;
 app.listen(port);
 
