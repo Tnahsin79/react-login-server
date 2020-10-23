@@ -331,7 +331,7 @@ app.put("/likes/:id", async function (req, res) {
   }
 });
 
-app.get('/nonFriends/:id', async function (req, res) {
+/*app.get('/nonFriends/:id', async function (req, res) {
   try {
     var client = await mongoClient.connect(url);
     var result = [];
@@ -340,10 +340,10 @@ app.get('/nonFriends/:id', async function (req, res) {
     var users = await db.collection("user").find().toArray();
     var friends = myself.Friends;
     for (let i = 0; i < users.length; i++) {
-      if (!friends.includes({
-        "email": users[i].Email,
-        "name": users[i].Name
-      }))
+      for(let j=0;j<friends.length;j++){
+        if(friends[j].email===users[i].Email)
+        { f++; break; }
+      }
         result.push({
           email: users[i].Email,
           name: users[i].Name
@@ -356,7 +356,7 @@ app.get('/nonFriends/:id', async function (req, res) {
       message: "Something went wrong: " + error
     })
   }
-});
+});*/
 
 
 const port = process.env.PORT || 3001;
