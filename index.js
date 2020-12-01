@@ -133,7 +133,7 @@ app.put("/valid", async function (req, res) {
     var client = await mongoClient.connect(url);
     var db = client.db("react-login");
     var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.body.Id) });
-    if (user) {
+    if (user.isActivated === false) {
       await db.collection("user")
         .findOneAndUpdate(
           { _id: mongodb.ObjectID(req.body.Id) },
@@ -148,7 +148,9 @@ app.put("/valid", async function (req, res) {
       });
     }
     else {
-      console.log("no user found");
+      res.json({
+        message: "Account activated already!"
+      });
     }
 
   }
@@ -322,6 +324,62 @@ app.put("/likes/:id", async function (req, res) {
         }
       );
     res.json(post);
+  }
+  catch (error) {
+    console.log("ERROR: " + error);
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.put("/deletePost", async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.body.UserId) });
+    let posts = user.Posts;
+    posts.splice(req.body.index - 1, 1);
+    await db.collection("user")
+      .findOneAndUpdate(
+        { _id: mongodb.ObjectID(req.body.UserId) },
+        {
+          $set: {
+            Posts: posts
+          }
+        }
+      );
+    res.json({
+      message: "post deleted"
+    });
+  }
+  catch (error) {
+    console.log("ERROR: " + error);
+    res.json({
+      message: "Something went wrong: " + error
+    })
+  }
+});
+
+app.put("/updatePost", async function (req, res) {
+  try {
+    var client = await mongoClient.connect(url);
+    var db = client.db("react-login");
+    var user = await db.collection("user").findOne({ _id: mongodb.ObjectID(req.body.UserId) });
+    let posts = user.Posts;
+    posts[req.body.index - 1].text = req.body.changeText;
+    await db.collection("user")
+      .findOneAndUpdate(
+        { _id: mongodb.ObjectID(req.body.UserId) },
+        {
+          $set: {
+            Posts: posts
+          }
+        }
+      );
+    res.json({
+      message: "post updated"
+    });
   }
   catch (error) {
     console.log("ERROR: " + error);
